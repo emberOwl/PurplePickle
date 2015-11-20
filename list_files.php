@@ -1,16 +1,16 @@
 <?php
-require "isloggedin.php";
-if(!$isLoggedIn||time()>$_SESSION['time']+(60*60*24*3))
-{
-    //3day timeout
-    session_destroy();
-    header("location:/");
-    exit(); 
-}
-$username=htmlentities($_SESSION['myusername']);
+    require "isloggedin.php";
+    if(!$isLoggedIn || time() > $_SESSION['time'] + (60 * 60 * 24 * 3))
+    {
+        //3day timeout
+        session_destroy();
+        header("location:/");
+        exit(); 
+    }
+    $username = htmlentities($_SESSION['myusername']);
 ?>
 <!DOCTYPE HTML>
-    <html>
+ <html>
     <head>
         <style id="antiClickjack">body{display:none !important;}</style>
         <script type="text/javascript">
@@ -67,40 +67,39 @@ $username=htmlentities($_SESSION['myusername']);
         The pickle has found: 
         <br>
         <?php
+            $userid = $_SESSION['userid'];
+            $tbl_name = "Files";
+            $sql = "SELECT name, type, id FROM $tbl_name WHERE ownerid = ?;"; // or die('Error, query failed"
 
-$userid= $_SESSION['userid'];
-$tbl_name = "Files";
-$sql="SELECT name, type, id FROM $tbl_name WHERE ownerid = ?;"; // or die('Error, query failed"
+            $_SESSION['deleteToken'] = md5(uniqid(rand(), true));
+            $_SESSION['renameToken'] = md5(uniqid(rand(), true));
+            $_SESSION['downloadToken'] = md5(uniqid(rand(), true));
+            if($stmt = mysqli_prepare($cxt,$sql))
+            {
+                mysqli_stmt_bind_param($stmt,"i", $userid);
+                mysqli_stmt_execute($stmt);
+                mysqli_stmt_bind_result($stmt,$name,$type,$fileID);
+                print "<br><table class = \"tbl\"><tr class = \"tbl\"><td class = \"tbl\">Name</td><td class = \"tbl\">Type</tr>";
 
-$_SESSION['deleteToken'] = md5(uniqid(rand(), true));
-$_SESSION['renameToken'] = md5(uniqid(rand(), true));
-$_SESSION['downloadToken'] = md5(uniqid(rand(), true));
-if($stmt = mysqli_prepare($cxt,$sql))
-{
-    mysqli_stmt_bind_param($stmt,"i", $userid);
-    mysqli_stmt_execute($stmt);
-    mysqli_stmt_bind_result($stmt,$name,$type,$fileID);
-    print "<br><table class = \"tbl\"><tr class = \"tbl\"><td class = \"tbl\">Name</td><td class = \"tbl\">Type</tr>";
+                while (mysqli_stmt_fetch($stmt)) 
+                {
+                    print "<tr class = \"tbl\"><td class=\"tbl\"><img src = \"eggplant-large.png\" width=\"12\" alt = \"file pickle\"> ".$name."</td><td class = \"tbl\">".$type."</td><td class = \"tbl\"><p class = \"actionTbl\"><a href='download.php?id={$fileID}&token={$_SESSION['downloadToken']}'>Download</a></p></td><td class = \"tbl\" onclick = \"tt(".$fileID.")\"><p class = \"actionTbl\" id = \"renameSpan".$fileID."\"><a href = \"#\">Rename</a></p><form method = \"POST\" action = \"rename.php\" name = \"rn\" class = \"rninput\" id = \"rn".$fileID."\"><input type = \"hidden\" name = \"token\" id = \"token\" value = \"".$_SESSION['renameToken']."\"><input type = \"hidden\" name = \"fileid\" id = \"fileid\" value = \"".$fileID."\"><input type = \"text\" name = \"newname\" id = \"newname\" value = \"Put the new name here.\"><input name=\"submitrename\" type=\"submit\" id=\"submitrename\" value=\"OK!\"></form></td><td class = \"tbl\"><p class = \"actionTbl\"><a href='delete.php?id={$fileID}&token={$_SESSION['deleteToken']}'>Delete</a></p></td></tr>";
+                }
+            }
+            print "</table>";
 
-    while (mysqli_stmt_fetch($stmt)) 
-    {
-        print "<tr class = \"tbl\"><td class=\"tbl\"><img src = \"eggplant-large.png\" width=\"12\" alt = \"file pickle\"> ".$name."</td><td class = \"tbl\">".$type."</td><td class = \"tbl\"><p class = \"actionTbl\"><a href='download.php?id={$fileID}&token={$_SESSION['downloadToken']}'>Download</a></p></td><td class = \"tbl\" onclick = \"tt(".$fileID.")\"><p class = \"actionTbl\" id = \"renameSpan".$fileID."\"><a href = \"#\">Rename</a></p><form method = \"POST\" action = \"rename.php\" name = \"rn\" class = \"rninput\" id = \"rn".$fileID."\"><input type = \"hidden\" name = \"token\" id = \"token\" value = \"".$_SESSION['renameToken']."\"><input type = \"hidden\" name = \"fileid\" id = \"fileid\" value = \"".$fileID."\"><input type = \"text\" name = \"newname\" id = \"newname\" value = \"Put the new name here.\"><input name=\"submitrename\" type=\"submit\" id=\"submitrename\" value=\"OK!\"></form></td><td class = \"tbl\"><p class = \"actionTbl\"><a href='delete.php?id={$fileID}&token={$_SESSION['deleteToken']}'>Delete</a></p></td></tr>";
-    }
-}
-print "</table>";
-
-mysqli_stmt_close($stmt);
-mysqli_close($cxt);
-/*
-SQL Injection: bind_param
-XSS: htmlentities
-CSRF: token from md5
-W3C validated! :D
-Session management: dull session name, PHP generated id was safe enough, 3 day timeout
-HTTPonly: turned on for cookies, cookie has random value, 
-Clickjacking: prevented iframes
-jQuery: later
-*/
+            mysqli_stmt_close($stmt);
+            mysqli_close($cxt);
+            /*
+            SQL Injection: bind_param
+            XSS: htmlentities
+            CSRF: token from md5
+            W3C validated! :D
+            Session management: dull session name, PHP generated id was safe enough, 3 day timeout
+            HTTPonly: turned on for cookies, cookie has random value, 
+            Clickjacking: prevented iframes
+            jQuery: later
+            */
 ?>
 
 <span id = "wait" onclick = "this.firstChild.play();eegg();"><audio src = "bossfight.mp3"></audio>That's an eggplant!</span>
