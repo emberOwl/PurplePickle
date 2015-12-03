@@ -1,3 +1,3 @@
 # PurplePickle
-[Delicious Google Drive Knockoff](http://purplepickle.byethost31.com/)
+[Delicious Google Drive Knockoff](http://gnarlygno.me/PurplePickle/)
 
